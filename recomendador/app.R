@@ -8,7 +8,7 @@ source("functions.R")
 example_person_data <- data_frame(
   name = c("Diego", "Diego", "Andres", "Andres", "Camilo", "Camilo"),
   question_nr = c(1, 2, 1, 2, 1, 2),
-  question_position = c(5, 2, 1, 4, 3, 5)
+  question_position = c(2, -2, 1, -1, 0, 2)
 )
 
 example_question_data <- data_frame(
@@ -54,7 +54,7 @@ server <- function(input, output) {
     page = 1,
     themas = NULL
   )
-  
+
   observe({
     rv$themas <- input$checkGroup
   })
@@ -77,7 +77,7 @@ server <- function(input, output) {
     map(function(i) {
       callModule(observe_questions, i, rv, example_question_data$question[i])
     })
-  
+
   output$thema_select <- renderUI({
     choices <- unique(example_question_data$thema) %>%
       set_names(unique(example_question_data$thema))
@@ -86,37 +86,46 @@ server <- function(input, output) {
       choices = choices
     )
   })
-    
+
 
   output$table <- renderTable({
     example_question_data$user <- 1:NUM_QUESTIONS %>%
       map(function(i) {
         rv[[paste0(i, "-question")]]
       })
-    
+
     example_question_data %>%
       mutate(thema_wheight = ifelse(thema %in% rv$themas, 3, 1)) %>%
       merge(example_person_data, by = "question_nr") %>%
-      mutate(diff = (as.numeric(user) - question_position)^2 * thema_wheight) %>%
+      mutate(diff = (as.numeric(user) - question_position) ^ 2 * thema_wheight) %>%
       group_by(name) %>%
       summarise(score = sum(diff)) %>%
       arrange(score)
   })
-  
+
   output$plot <- renderPlot({
-  #   df <- data.frame(x = rnorm(10, 5, 1), y = rnorm(10))
-  #   test <- apply(df, 1, dist)
-  #   apply(combn(1:ncol(A), 2), 2, function(x) my_dist_function(A[, x]))
-  #   as_data_frame(eurodist)
-  #   class(eurodist)
-  #   autoplot(eurodist) + 
-  #     coord_fixed()
-  #   
-  #   # Autoplot of MDS
-  #   autoplot(cmdscale(eurodist, eig = TRUE), 
-  #            label = TRUE, 
-  #            label.size = 3, 
-  #            size = 0)
+    user_position <- 1:NUM_QUESTIONS %>%
+      map(function(i) {
+        rv[[paste0(i, "-question")]]
+      }) %>%
+      set_names(1:NUM_QUESTIONS) %>%
+      as_data_frame() %>%
+      mutate(name = "You")
+
+    positions_df <- example_person_data %>%
+      spread(question_nr, question_position) %>%
+      rbind(user_position) %>%
+      as.data.frame()
+
+    rownames(positions_df) <- positions_df$name
+
+    distance_matrix <- positions_df %>%
+      select(-name) %>%
+      dist()
+
+    autoplot(
+      cmdscale(distance_matrix, eig = TRUE), label = TRUE, label.size = 3, size = 0
+    )
   })
 }
 
