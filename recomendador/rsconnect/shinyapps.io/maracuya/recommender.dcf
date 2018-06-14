@@ -1,0 +1,12 @@
+name: recommender
+title: recommender
+username:
+account: maracuya
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 360812
+bundleId: 1429053
+url: https://maracuya.shinyapps.io/recommender/
+when: 1528969033.36867
+asMultiple: FALSE
+asStatic: FALSE
