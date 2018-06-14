@@ -13,11 +13,11 @@ observe_questions <- function(input, output, session, rv, question) {
     radioButtons(
       session$ns("radio"), label = h3(question),
       choices = list(
-        "-2 - Contra" = -2,
+        "-2 - Disagree" = -2,
         "-1" = -1,
         "0 - Neutral" = 0,
         "1" = 1,
-        "2 - Pro" = 2
+        "2 - Agree" = 2
       ),
       selected = 0
     )
