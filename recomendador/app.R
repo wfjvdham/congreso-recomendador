@@ -5,24 +5,36 @@ library(ggfortify)
 
 source("functions.R")
 
-example_person_data <- data_frame(
-  name = c("Diego", "Diego", "Andres", "Andres", "Camilo", "Camilo"),
-  question_nr = c(1, 2, 1, 2, 1, 2),
-  question_position = c(2, -2, 1, -1, 0, 2)
-)
+# --- This part should be edited by the user
+
+PERSONS <- c( "Andres", "Diego", "Camilo")
+QUESTIONS <- c("What is your position on question 1?", 
+               "What is your position on question 2?",
+               "What is your position on question 3?")
+THEMES <- c("thema_1", "thema_2", "thema_2")
+POSITIONS <- c(2, -2, 1, -1, 0, 2, -1, -1, 2)
+
+# ---
+
+NUM_QUESTIONS <- length(QUESTIONS)
 
 example_question_data <- data_frame(
-  question_nr = c(1, 2),
-  thema = c("thema_1", "thema_2"),
-  question = c("Que?", "Como?")
+  question_nr = c(1, 2, 3),
+  thema = THEMES,
+  question = QUESTIONS
+)
+
+example_person_data <- data_frame(
+  name = rep(PERSONS, NUM_QUESTIONS),
+  question_nr = rep(1:NUM_QUESTIONS, each = length(PERSONS)),
+  question_position = POSITIONS
 )
 
 NUM_PAGES <- 3
-NUM_QUESTIONS <- nrow(example_question_data)
 
 ui <- fluidPage(
   useShinyjs(),
-  titlePanel("Recomendador"),
+  titlePanel("Recommender"),
   hidden(
     div(
       class = "page",
@@ -81,7 +93,7 @@ server <- function(input, output) {
     choices <- unique(example_question_data$thema) %>%
       set_names(unique(example_question_data$thema))
     checkboxGroupInput(
-      "checkGroup", label = h3("Themas Importantas"),
+      "checkGroup", label = h3("Which themes are important to you?"),
       choices = choices
     )
   })
@@ -97,7 +109,7 @@ server <- function(input, output) {
       merge(example_person_data, by = "question_nr") %>%
       mutate(diff = (as.numeric(user) - question_position) * thema_wheight) %>%
       group_by(name) %>%
-      summarise(score = sum(diff)) %>%
+      summarise(score = abs(sum(diff))) %>%
       arrange(score)
   })
 
